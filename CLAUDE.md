@@ -84,6 +84,8 @@ Every inbound event must conform to:
 - `API_KEYS` — comma-separated project API keys (e.g. `playzoo=key1,world-of-ev=key2`)
 - `JWT_SECRET` — for admin read endpoints
 - `PORT` — default 3001
+- `NODE_ENV` — set to `production` on the server
+- `ALLOWED_ORIGINS` — **required in production**; comma-separated list of allowed CORS origins (e.g. `https://console.trotsky.dev,https://playzoo.trotsky.dev`). If unset in production, all cross-origin requests are blocked.
 
 ## Code Conventions
 
