@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 export interface IApiKey extends Document {
   companyId: mongoose.Types.ObjectId
   serviceId: string
+  name: string
   keyHash: string
   createdAt: Date
   revokedAt?: Date
@@ -13,6 +14,7 @@ const ApiKeySchema = new Schema<IApiKey>(
   {
     companyId: { type: Schema.Types.ObjectId, required: true },
     serviceId: { type: String, required: true },
+    name: { type: String, required: true },
     keyHash: { type: String, required: true },
     revokedAt: { type: Date },
   },

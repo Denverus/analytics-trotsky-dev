@@ -5,6 +5,7 @@ import { ApiKey } from '../models/api-key.model'
 declare module 'fastify' {
   interface FastifyRequest {
     companyId?: string
+    apiKeyId?: string
   }
 }
 
@@ -24,4 +25,5 @@ export async function validateApiKey(request: FastifyRequest, reply: FastifyRepl
   }
 
   request.companyId = record.companyId.toString()
+  request.apiKeyId = record._id.toString()
 }

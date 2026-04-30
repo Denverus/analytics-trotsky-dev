@@ -35,6 +35,7 @@ const eventsRoutes: FastifyPluginAsync = async (fastify) => {
       const { projectId, eventName, timestamp, sessionId, payload } = request.body
       await Event.create({
         companyId: new mongoose.Types.ObjectId(request.companyId),
+        apiKeyId: request.apiKeyId ? new mongoose.Types.ObjectId(request.apiKeyId) : undefined,
         projectId,
         eventName,
         timestamp: new Date(timestamp),

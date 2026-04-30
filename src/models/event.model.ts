@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IEvent extends Document {
   companyId: mongoose.Types.ObjectId
+  apiKeyId?: mongoose.Types.ObjectId
   projectId: string
   eventName: string
   timestamp: Date
@@ -12,6 +13,7 @@ export interface IEvent extends Document {
 
 const EventSchema = new Schema<IEvent>({
   companyId: { type: Schema.Types.ObjectId, required: true },
+  apiKeyId: { type: Schema.Types.ObjectId },
   projectId: { type: String, required: true },
   eventName: { type: String, required: true },
   timestamp: { type: Date, required: true },
@@ -21,6 +23,7 @@ const EventSchema = new Schema<IEvent>({
 })
 
 EventSchema.index({ companyId: 1, timestamp: -1 })
+EventSchema.index({ companyId: 1, apiKeyId: 1, timestamp: -1 })
 EventSchema.index({ companyId: 1, eventName: 1 })
 EventSchema.index({ companyId: 1, sessionId: 1 })
 // TTL: auto-delete events older than 90 days

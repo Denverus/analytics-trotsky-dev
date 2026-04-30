@@ -15,20 +15,35 @@ export interface EntityStats {
   byDay: { date: string; count: number }[]
 }
 
+function buildBaseMatch(
+  companyId: string,
+  apiKeyIds: string[] | undefined,
+  from?: string,
+  to?: string,
+): Record<string, unknown> {
+  const match: Record<string, unknown> = {
+    companyId: new mongoose.Types.ObjectId(companyId),
+  }
+  if (apiKeyIds && apiKeyIds.length > 0) {
+    match.apiKeyId = { $in: apiKeyIds.map((id) => new mongoose.Types.ObjectId(id)) }
+  }
+  if (from || to) {
+    const range: Record<string, unknown> = {}
+    if (from) range['$gte'] = new Date(from)
+    if (to) range['$lte'] = new Date(to)
+    match.timestamp = range
+  }
+  return match
+}
+
 export async function getEntityStats(
   companyId: string,
+  apiKeyIds: string[] | undefined,
   entityType?: string,
   from?: string,
   to?: string,
 ): Promise<EntityStats> {
-  const baseMatch: Record<string, unknown> = {
-    companyId: new mongoose.Types.ObjectId(companyId),
-  }
-  if (from || to) {
-    baseMatch.timestamp = {}
-    if (from) (baseMatch.timestamp as Record<string, unknown>)['$gte'] = new Date(from)
-    if (to) (baseMatch.timestamp as Record<string, unknown>)['$lte'] = new Date(to)
-  }
+  const baseMatch = buildBaseMatch(companyId, apiKeyIds, from, to)
   if (entityType) {
     baseMatch['payload.entityType'] = entityType
   }
@@ -96,18 +111,6 @@ export async function getEntityStats(
   }
 }
 
-function companyMatch(companyId: string, from?: string, to?: string) {
-  const match: Record<string, unknown> = {
-    companyId: new mongoose.Types.ObjectId(companyId),
-  }
-  if (from || to) {
-    match.timestamp = {}
-    if (from) (match.timestamp as Record<string, unknown>)['$gte'] = new Date(from)
-    if (to) (match.timestamp as Record<string, unknown>)['$lte'] = new Date(to)
-  }
-  return match
-}
-
 export interface SessionStats {
   total: number
   byDay: { date: string; sessions: number }[]
@@ -115,11 +118,12 @@ export interface SessionStats {
 
 export async function getSessionStats(
   companyId: string,
+  apiKeyIds: string[] | undefined,
   from?: string,
   to?: string,
 ): Promise<SessionStats> {
   const result = await Event.aggregate([
-    { $match: companyMatch(companyId, from, to) },
+    { $match: buildBaseMatch(companyId, apiKeyIds, from, to) },
     {
       $group: {
         _id: {
@@ -144,11 +148,12 @@ export interface EventStats {
 
 export async function getEventStats(
   companyId: string,
+  apiKeyIds: string[] | undefined,
   from?: string,
   to?: string,
 ): Promise<EventStats> {
   const result = await Event.aggregate([
-    { $match: companyMatch(companyId, from, to) },
+    { $match: buildBaseMatch(companyId, apiKeyIds, from, to) },
     { $group: { _id: '$eventName', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 20 },
@@ -168,12 +173,13 @@ export interface DurationStats {
 
 export async function getSessionDurationStats(
   companyId: string,
+  apiKeyIds: string[] | undefined,
   from?: string,
   to?: string,
 ): Promise<DurationStats> {
   // Compute per-session duration as max(timestamp) - min(timestamp)
   const result = await Event.aggregate([
-    { $match: companyMatch(companyId, from, to) },
+    { $match: buildBaseMatch(companyId, apiKeyIds, from, to) },
     {
       $group: {
         _id: '$sessionId',
