@@ -6,17 +6,18 @@ import { getAllowedOrigins } from '../services/origin-cache'
 
 const corsPlugin: FastifyPluginAsync = async (fastify) => {
   await fastify.register(fastifyCors, {
-    origin: async (origin, cb) => {
+    // @fastify/cors v9: async origin function must return a value, not use a callback.
+    origin: async (origin) => {
       // No Origin header: same-origin or server-to-server — allow.
-      if (!origin) return cb(null, true)
+      if (!origin) return true
       // Dev: allow everything (matches prior behavior).
-      if (config.nodeEnv !== 'production') return cb(null, true)
+      if (config.nodeEnv !== 'production') return true
       try {
         const allowed = await getAllowedOrigins()
-        cb(null, allowed.has(origin))
+        return allowed.has(origin)
       } catch (err) {
         fastify.log.error({ err }, 'origin-cache lookup failed')
-        cb(null, false)
+        return false
       }
     },
     credentials: true,
