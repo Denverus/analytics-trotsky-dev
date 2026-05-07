@@ -5,6 +5,7 @@ export interface IApiKey extends Document {
   serviceId: string
   name: string
   keyHash: string
+  allowedOrigins: string[]
   createdAt: Date
   revokedAt?: Date
 }
@@ -16,6 +17,7 @@ const ApiKeySchema = new Schema<IApiKey>(
     serviceId: { type: String, required: true },
     name: { type: String, required: true },
     keyHash: { type: String, required: true },
+    allowedOrigins: { type: [String], default: [] },
     revokedAt: { type: Date },
   },
   { collection: 'apikeys', timestamps: { createdAt: true, updatedAt: false } },
